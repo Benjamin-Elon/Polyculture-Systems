@@ -35,6 +35,7 @@ def connect_to_db():
     # create_table(cur, conn)
     # conn.commit()
 
+# import companion data to sqlite database
 def import_companion_data():
 
     with open(r"C:\Users\user\Desktop\companions.txt") as fh:
@@ -54,38 +55,138 @@ def import_companion_data():
     conn.commit()
     conn.close()
 
+def companion_table_revert():
+
+    cur.execute('SELECT * FROM Companions')
+    relations = cur.fetchall()
+
+
+def check_status(p2, p1_row, rating):
+    
+    """
+    Checks and corrects if there are inconsistencies 
+    with companions and incompatibles when importing data
+    
+    :param p2: str
+        name of companion
+    :param p1_row: dict 
+        species row from database
+    :param rating: int
+        rating for imported plant relation [-1,0 or 1]
+    :return:
+    """
+    species = p1_row['species_name']
+
+    if rating < 0 and p1_row['known_companions'] is not None and p2 in p1_row['known_companions']:
+        p1_row['known_companions'].remove(p2)
+        print("removed", p2 , "from", species, 'known_companions')
+
+    elif rating == 0 and p1_row['incompatible_with'] is not None and p2 in p1_row['incompatible_with']:
+        p1_row['incompatible_with'].remove(p2)
+        print("removed", p2, "from", species, 'incompatible_with')
+
+    elif rating == 0 and p1_row['known_companions'] is not None and p2 in p1_row['known_companions']:
+        p1_row['known_companions'].remove(p2)
+        print("removed", p2, "from", species, 'known_companions')
+    
+    # if companion and plant in in incompatible
+    elif rating > 1 and p2 in p1_row['incompatible_with']:
+        p1_row['incompatible_with'].remove(p2)
+
+    return p1_row
+
+
+def remove_item():
+    return
+
+def convert_to_list(p1_row):
+    # print(p1_row['known_companions'])
+    # print(p1_row['incompatible_with'])
+    # print(type(p1_row['known_companions']))
+    # print(type(p1_row['incompatible_with']))
+    # print(len(p1_row['known_companions']))
+    # print(len(p1_row['incompatible_with']))
+    if p1_row['known_companions'] is None:
+        p1_row['known_companions'] = []
+    elif ',' not in p1_row['known_companions']:
+        p1_row['known_companions'] = [p1_row['known_companions']]
+    else:
+        p1_row['known_companions'] = p1_row['known_companions'].split(',')
+
+    if p1_row['incompatible_with'] is None:
+        p1_row['incompatible_with'] = []
+    elif ',' not in p1_row['incompatible_with']:
+        p1_row['incompatible_with'] = [p1_row['incompatible_with']]
+    else:
+        p1_row['incompatible_with'] = p1_row['incompatible_with'].split(',')
+    print(type(p1_row['known_companions']))
+    print(p1_row['incompatible_with'])
+    print(len(p1_row['incompatible_with']))
+
+    return p1_row
+
+def companion_table_converter(cur, conn):
+
+    cur.execute('SELECT p1, p2, rating FROM Companions')
+    companion_pairs = cur.fetchall()
+    print(companion_pairs)
+    for pair in companion_pairs:
+        p1 = pair['p1']
+        p2 = pair['p2']
+        rating = pair['rating']
+        p1 = p1.replace('_', " ")
+        p2 = p2.replace('_', " ")
+        if p1 == 'brussels sprouts':
+            p1 == 'brussel sprout'
+        elif p2 == 'brussels sprouts':
+            p2 == 'brussel sprout'
+
+        cur.execute('SELECT * FROM Species WHERE species_name == (?)', (p1,))
+        p1_row = cur.fetchone()
+
+        print('comparing', p1, p2)
+        print("p1row:", p1_row)
+
+        # Add species to database if it doesn't already exist
+        if p1_row is None:
+            print('111111')
+            cur.execute('INSERT OR IGNORE INTO Species (species_name) VALUES (?)', (p1,))
+            p1_row = {'species_name': p1, 'known_companions': [], 'incompatible_with': []}
+            conn.commit()
+
+        print(p1_row['known_companions'], p1_row['incompatible_with'])
+        p1_row = convert_to_list(p1_row)
+
+        # if there is no rating
+        if rating in ["",None]:
+            continue
+
+        # verify no mistakes were made previously
+        p1_row = check_status(pair['p2'], p1_row, pair['rating'])
+
+        # incompatible
+        if rating < 0:
+            try:
+                if p2 not in p1_row['incompatible_with']:
+                    p1_row['incompatible_with'].append(p2)
+                    cur.execute('UPDATE Species SET incompatible_with == (?) WHERE species_name == (?) ',
+                                (','.join(p1_row['incompatible_with']), p1))
+            except TypeError:
+                cur.execute('UPDATE Species SET incompatible_with == (?) WHERE species_name == (?) ', (p2, p1))
+
+        elif rating > 0:
+            try:
+                if p2 not in p1_row['known_companions']:
+                    p1_row['known_companions'].append(p2)
+                    cur.execute('UPDATE Species SET known_companions == (?) WHERE species_name == (?) ',
+                                (','.join(p1_row['known_companions']), p1))
+            except TypeError:
+                cur.execute('UPDATE Species SET known_companions == (?) WHERE species_name == (?) ',
+                            (p2, p1))
+        conn.commit()
+
 
 conn,cur = connect_to_db()
+companion_table_converter(cur, conn)
+
 # import_companion_data()
-cur.execute('SELECT p1, p2, rating FROM Companions')
-companion_pairs = cur.fetchall()
-print(companion_pairs)
-for pair in companion_pairs:
-
-    p1 = pair['p1']
-    p2 = pair['p2']
-    print(p1,p2)
-    cur.execute('SELECT * FROM Species WHERE variety_name == (?)', (p1,))
-    p1_row = cur.fetchone()
-    cur.execute('SELECT * FROM Species WHERE variety_name == (?)', (p2,))
-    p2_row = cur.fetchone()
-    print("p1row:", p1_row)
-
-    if p1_row is None:
-        cur.execute('INSERT OR IGNORE INTO Species (variety_name) VALUES (?)', (p1,))
-    if p2_row is None:
-        cur.execute('INSERT OR IGNORE INTO Species (variety_name) VALUES (?)', (p2,))
-    conn.commit()
-
-    # if there is no rating
-    if pair['rating'] in ["",None]:
-        continue
-    else:
-        if p1_row['known_companions'] is None:
-            cur.execute("INSERT OR IGNORE INTO Species (known_companions) WHERE variety_name == (?)",(p2))
-        if p2 not in p1_row['known_companions']:
-            print(row['known_companions'])
-    elif pair['rating'] < 0:
-        continue
-    elif pair['rating'] == 0:
-        continue
