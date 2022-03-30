@@ -9,7 +9,7 @@ menus = \
                                    ["Update plant compatibility ratings", companion_planter.update_compatibility]]},
 
      "main": {"prompt": "Would you like to:",
-              "options": [["Get companion recommendations", companion_planter.reccomend_companions()],
+              "options": [["Get companion recommendations", companion_planter.reccomend_companions],
                           ["Show active gardening tasks", task_scheduler.show_tasks]]},
 
      "garden_setup": {"prompt": "Would you like to:",

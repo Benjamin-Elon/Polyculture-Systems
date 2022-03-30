@@ -40,13 +40,53 @@ def edit_garden():
     return
 
 
-def remove_garden():
-    return
-
-
 def load_garden():
-    print("arrgghh")
-    return
+    filename = "Gardens/gardens"
+
+    if not os.path.exists(filename):
+        with open(filename, "w+") as fh:
+            fh.close()
+
+    with open(filename, 'r') as fh:
+        contents = fh.readlines()
+        fh.close()
+
+    if contents:
+        with open(filename, 'r') as fh:
+            gardens = json.load(fh)
+        menu = []
+        x = 0
+        for item in gardens:
+            print("(", x, ")", item)
+            x += 1
+            menu.append(gardens[item])
+        print("(", x + 5, ") Delete a garden")
+
+        while True:
+            try:
+                choice = int(input("Select an garden to load:\n"))
+                if choice == x + 5:
+                    x = int(input("Select garden to delete:\n"))
+                    del menu[x]
+                    if len(menu) == 1:
+                        print("No more gardens")
+                        return None
+                    x = 0
+                    for item in menu:
+                        print("(", x, ")", item)
+                        x += 1
+                    print("(", x + 5, ") Delete a garden")
+                    continue
+                garden = menu[choice]
+                break
+            except (ValueError, IndexError):
+                print("Invalid selection.")
+
+        return garden
+
+    else:
+        print("No gardens detected.")
+        return None
 
 
 def save_garden(garden):
