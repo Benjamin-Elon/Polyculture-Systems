@@ -12,6 +12,7 @@ def dict_factory(cursor, row):
 
 
 def connect_to_db():
+    print("connecting to database...")
     conn = sqlite3.connect(r"Syntropy.sqlite")
     conn.row_factory = dict_factory
     cur = conn.cursor()

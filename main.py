@@ -1,7 +1,8 @@
 import menus
 
+
 def main():
-    menus.menu('garden_select')
+    menus.menu('select_garden')
     return
 
 

@@ -82,10 +82,10 @@ def load_garden():
             except (ValueError, IndexError):
                 print("Invalid selection.")
 
-        return garden
+        return menus.menu('garden_actions', garden)
 
     else:
-        print("No gardens detected.")
+        print("No gardens saved.")
         return None
 
 
