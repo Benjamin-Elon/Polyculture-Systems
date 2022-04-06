@@ -8,7 +8,7 @@ menus = \
                                    ["Edit gardens", garden_setup.edit_garden]]},
 
      "garden_actions": {"prompt": "Would you like to:",
-                        "options": [["Get companion recommendations", companion_planter.get_companions],
+                        "options": [["Get companion recommendations", garden_setup.configure_garden],
                                     ["Show active gardening tasks", task_scheduler.show_tasks]]},
 
      "garden_setup": {"prompt": "Would you like to:",
@@ -20,6 +20,8 @@ menus = \
 
 # displays a menu based on dictionary of menu options
 def menu(menu_key, *params):
+    if len(params) == 1:
+        params = params[0]
     # fetch menu
     menu_items = menus[menu_key]
     print(menu_items["prompt"], "\n")

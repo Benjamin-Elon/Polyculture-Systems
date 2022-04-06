@@ -31,6 +31,11 @@ def get_weather_data(lat, long):
         print(x)
 
 
+def save_weather_data(historical_weather):
+
+    pass
+
+
 def get_historical_weather():
     lat, long = city_name_to_coords()
     day = datetime.now()
@@ -44,21 +49,26 @@ def get_historical_weather():
     historical_weather = Daily(weather_station_id, start, end)
     # weather is a pandas dataframe
     historical_weather = historical_weather.fetch()
-
+    save_weather_data(historical_weather)
+    print(historical_weather.columns)
+    years = []
+    months = []
+    days = []
     for row in historical_weather.iterrows():
-        for date in row:
+        date = row[0]
+        date = date.strftime('%Y-%m-%d')
+        date = date.split("-")
+        years.append(date[0])
+        months.append(date[1])
+        days.append(date[2])
+    historical_weather['year'] = years
+    historical_weather['month'] = months
+    historical_weather['day'] = days
 
-            date = date.strftime('%Y-%m-%d')
-            print(date)
-            row['date'] = date
-            print(historical_weather[row]['date'])
-    for x in historical_weather['date']:
-        print(x)
+    historical_weather.groupby('year')
 
-    # Plot line chart including average, minimum and maximum temperature
-    # seaborn.histplot(x='prcp', data=historical_weather)
-    plt.plot(x='prcp', y='date', data=historical_weather)
-    # print(type(historical_weather))
+    seaborn.displot(x='prcp', y='year', data=historical_weather)
+
     plt.show()
 
     df = historical_weather

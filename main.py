@@ -2,7 +2,7 @@ import menus
 
 
 def main():
-    menus.menu('select_garden')
+    menus.menu('select_garden', 'gardens')
     return
 
 
