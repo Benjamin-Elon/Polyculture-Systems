@@ -1,4 +1,4 @@
-import companion_planter
+import tools
 import db_actions
 import menus
 import json
@@ -155,11 +155,11 @@ def validate_location(location):
 
 def configure_garden(plant_list):
     my_garden = Garden()
-    location = companion_planter.validate_input("Input a location for your garden (closest city)")
+    location = tools.validate_input("Input a location for your garden (closest city)")
     my_garden.location = validate_location(location)
-    my_garden.garden_width = companion_planter.validate_input("int", "How wide is your garden in meters?\n")
-    my_garden.row_width = companion_planter.validate_input("int", "How wide do you want your rows?\n")
-    my_garden.path_width = companion_planter.validate_input("int", "How wide would you like your paths?")
+    my_garden.garden_width = tools.validate_input("int", "How wide is your garden in meters?\n")
+    my_garden.row_width = tools.validate_input("int", "How wide do you want your rows?\n")
+    my_garden.path_width = tools.validate_input("int", "How wide would you like your paths?")
     plants = []
     conn, cur = db_actions.connect_to_db()
     for plant in plant_list:
@@ -170,10 +170,11 @@ def configure_garden(plant_list):
 
     for x in range(len(plants)):
         print(plants[x])
-        plant_rows = companion_planter.validate_input("int", "Enter desired number of rows for: " + plants[x]['species_name'] + "\n")
+        plant_rows = tools.validate_input("int", "Enter desired number of rows for: " + plants[x]['species_name'] + "\n")
         plants[x]['num_rows'] = plant_rows
     my_garden.plants = plants
     print(my_garden.plants)
-    my_garden.garden_layout = companion_planter.optimise_garden_layout(my_garden)
+    my_garden.garden_layout = tools.optimise_garden_layout(my_garden)
 
     return
+
